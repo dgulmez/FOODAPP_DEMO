@@ -1,14 +1,28 @@
+using Microsoft.Extensions.Configuration;
+
 namespace FoodApp
 {
     static class Config
     {
-        //public const string TokenProviderUrl = "http://localhost/PraxappTokenProvider/TokenService.ashx";
-        public const string TokenProviderUrl = "https://praxappqa.aksa.com.tr/tokenProvider/TokenService.ashx";
-        public const string GatewayUrl       = "https://praxappqa.aksa.com.tr/gateway";
+        public static readonly string TokenProviderUrl;
+        public static readonly string GatewayUrl;
+        public static readonly string AuthUser;
+        public static readonly string AuthPass;
+        public static readonly string ApiKey;
+        public static readonly string UserAgent;
 
-        public const string AuthUser  = "aksa";
-        public const string AuthPass  = "aksa123";
-        public const string ApiKey    = "0000000000Mb";
-        public const string UserAgent = "FoodApp/1.0";
+        static Config()
+        {
+            var cfg = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false)
+                .Build();
+
+            TokenProviderUrl = cfg["TokenProviderUrl"];
+            GatewayUrl       = cfg["GatewayUrl"];
+            AuthUser         = cfg["AuthUser"];
+            AuthPass         = cfg["AuthPass"];
+            ApiKey           = cfg["ApiKey"];
+            UserAgent        = cfg["UserAgent"];
+        }
     }
 }
