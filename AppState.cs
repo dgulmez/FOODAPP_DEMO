@@ -6,8 +6,10 @@ namespace FoodApp
     class AppState
     {
         public string  SessionKey { get; set; }
-        public string  UserId     { get; set; }
-        public JToken  UserData   { get; set; }
+
+        public string SicilNo { get; set; }
+        //public string  UserId     { get; set; }
+        //public JToken  UserData   { get; set; }
 
         public List<JToken> OptionTypeModels { get; } = new List<JToken>();
         public List<JToken> TimeIntervals    { get; } = new List<JToken>();

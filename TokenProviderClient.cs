@@ -30,16 +30,15 @@ namespace FoodApp
             }
         }
 
-        public async Task<Tuple<string, JToken>> LoginAsync(string username, string password, bool semiSecure = true)
+        public async Task<Tuple<string, JToken>> LoginAsync(string username, string password, bool semiSecure = false)
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["action"]     = "login",
+                ["action"]     = semiSecure ? "ldaplogin" : "securelogin",
                 ["apiKey"]     = Config.ApiKey,
                 ["username"]   = username,
                 ["password"]   = password,
-                ["clientIP"]   = ClientIp,
-                ["semiSecure"] = semiSecure ? "true" : "false"
+                ["clientIP"]   = ClientIp
             });
 
             var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);

@@ -10,6 +10,8 @@ namespace FoodApp
         public static readonly string AuthPass;
         public static readonly string ApiKey;
         public static readonly string UserAgent;
+        public static readonly string ApiUser;
+        public static readonly string ApiPassword;
 
         static Config()
         {
@@ -23,6 +25,8 @@ namespace FoodApp
             AuthPass         = cfg["AuthPass"];
             ApiKey           = cfg["ApiKey"];
             UserAgent        = cfg["UserAgent"];
+            ApiUser          = cfg["ApiUser"];
+            ApiPassword      = cfg["ApiPassword"];
         }
     }
 }

@@ -37,25 +37,37 @@ namespace FoodApp
             // yapan sistemler için gereklidir. Yemek Portali kullanıcıları LDAP
             // kullanıcıları olduğu için hep "true" olarak gönderilmelidir.
             // ─────────────────────────────────────────────────────────────
-            Console.Write("Kullanıcı adı: ");
+            /*Console.Write("Kullanıcı adı: ");
             string username = Console.ReadLine().Trim();
             Console.Write("Şifre: ");
-            string password = ReadPassword();
+            string password = ReadPassword();*/
+            Console.Write("İşlem yapacak sicil no: ");
+            string sicilNo = Console.ReadLine().Trim();
+
+            string username = Config.ApiUser;
+            string password = Config.ApiPassword;
 
             Console.WriteLine("\nGiriş yapılıyor...");
             try
             {
-                var loginResult = await tokenPrv.LoginAsync(username, password, semiSecure: true);
+                var loginResult = await tokenPrv.LoginAsync(username, password, semiSecure: false);
+
+                // Her token alma işleminde ApiUser ve ApiPassword ile gelmeye gerek yok, SessionKey üzerinden ilerleyeceğiz yine.
+                // Bu yüzden State'te saklıyoruz. (Sizin backend uygulamanız kendi state'inde saklamalı)
                 state.SessionKey = loginResult.Item1;
-                state.UserData   = loginResult.Item2;
+                // Artık Api User ile bağlanacağınız için UserData'yı saklamanıza gerek yok. Api kullanıcısının adı soyadı, ID'si vs önemli değil sizin için.
+                //state.UserData   = loginResult.Item2;
+                // Kullanıcı sicil no'sunu state'te ya da başka bir yerde saklıyorsunuzdur zaten. Bu DEMO uygulaması State nesnesi içinde tutuyor.
+                state.SicilNo = sicilNo;
 
                 // Praxapp, kullanıcı bilgilerini "data" alanında döndürür.
                 // userId sonraki adımlarda rezervasyon sorgusunda filtre olarak kullanılır.
-                state.UserId = state.UserData["userId"] != null ? state.UserData["userId"].ToString() : null;
+                // Artık buna da gerek yok.
+                //state.UserId = state.UserData["userId"] != null ? state.UserData["userId"].ToString() : null;
 
                 Console.WriteLine(string.Format("\n[OK] SessionKey : {0}", state.SessionKey));
-                Console.WriteLine(string.Format("     UserId     : {0}", state.UserId ?? "(belirlenemedi)"));
-                Console.WriteLine(string.Format("\nKullanıcı verisi:\n{0}", JsonConvert.SerializeObject(state.UserData, Formatting.Indented)));
+                //Console.WriteLine(string.Format("     UserId     : {0}", state.UserId ?? "(belirlenemedi)"));
+                //Console.WriteLine(string.Format("\nKullanıcı verisi:\n{0}", JsonConvert.SerializeObject(state.UserData, Formatting.Indented)));
             }
             catch (Exception ex)
             {
@@ -190,8 +202,11 @@ namespace FoodApp
 
                 var result = await praxapp.QueryAsync(
                     "queryReservation",
-                    query: "Date >= @p0 AND Person.Account.ID = @p2",
-                    args: new object[] { mondayParam, state.UserId });
+                    //query: "Date >= @p0 AND Person.Account.ID = @p2",
+                    //args: new object[] { mondayParam, state.UserId });
+                    query: "Date >= @p0 AND Person.Key = @p2",
+                    args: new object[] { mondayParam, sicilNo }); //
+                
 
                 foreach (var item in result["All"])
                     state.Reservations.Add(item);
@@ -441,15 +456,13 @@ namespace FoodApp
                     else
                     {
                         string dateParam = selectedDate.ToString("yyyy-MM-dd") + "T00:00:00Z";
-                        result = await praxapp.CallAsync("createReservation", new
-                        {
-                            e = new
-                            {
-                                Date         = dateParam,
-                                SeatOption   = isYemekIstemiyorum ? (string)null : selectedOption["ID"].ToString(),
-                                TimeInterval = isYemekIstemiyorum ? (string)null : selectedInterval["ID"].ToString()
-                            }
-                        });
+                        var reservationObj = new {
+                            p1 = state.SicilNo,
+                            p2 = isYemekIstemiyorum ? (string)null : selectedOption["ID"].ToString(),
+                            p3 = isYemekIstemiyorum ? (string)null : selectedInterval["ID"].ToString(),
+                            p4 = dateParam
+                        };
+                        result = await praxapp.CallAsync("CreateReservationOnBehalf", reservationObj);
                     }
 
                     bool hasErrors = result["HasErrors"] != null && (bool)result["HasErrors"];
@@ -482,7 +495,8 @@ namespace FoodApp
                     var refreshResult = await praxapp.QueryAsync(
                         "queryReservation",
                         query: "Date >= @p0 AND Person.Account.ID = @p2",
-                        args: new object[] { mondayParam, state.UserId });
+                        args: new object[] { mondayParam, null }); // Bu api değişecek. Şimdilik geçersiz
+                    //args: new object[] { mondayParam, state.UserId });
 
                     state.Reservations.Clear();
                     foreach (var r in refreshResult["All"])

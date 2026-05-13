@@ -292,7 +292,7 @@ Başarılı ve hata yanıtı `createReservation` ile aynı yapıdadır.
 4. querySeatOption    → Bu haftanın günlük menüleri
 5. queryReservation   → Kullanıcının mevcut rezervasyonları
 
-─── Etkileşimli döngü ───────────────────────────────────────────
+─── Demo uygulama döngüsü ───────────────────────────────────────────
 6. Tarih seçimi       → SeatOption'lar ve mevcut rezervasyon durumu gösterilir
 7. Menü seçimi        → 0 = Yemek istemiyorum
 8. GetCapacityInfo    → Seçilen yemekhane + tarih için anlık doluluk
