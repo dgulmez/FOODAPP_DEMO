@@ -34,16 +34,15 @@ namespace FoodApp
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["action"]     = semiSecure ? "ldaplogin" : "securelogin",
-                ["apiKey"]     = Config.ApiKey,
                 ["username"]   = username,
                 ["password"]   = password,
                 ["clientIP"]   = ClientIp
             });
 
-            var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);
+            string url = _baseUrl + (semiSecure ? "/ldaplogin" : "/securelogin");
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Add("Authorization", MakeBasicAuth(Config.AuthUser, Config.AuthPass));
-            request.Headers.TryAddWithoutValidation("User-Agent", Config.UserAgent);
+            request.Headers.TryAddWithoutValidation("apiKey", Config.ApiKey);
             request.Content = form;
 
             var response = await _http.SendAsync(request);
@@ -63,14 +62,14 @@ namespace FoodApp
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["action"]   = "getToken",
-                ["apiKey"]   = Config.ApiKey,
                 ["key"]      = sessionKey,
                 ["clientIP"] = ClientIp
             });
 
-            var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl);
+            string url = _baseUrl + "/getToken";
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Add("Authorization", MakeBasicAuth(Config.AuthUser, Config.AuthPass));
+            request.Headers.TryAddWithoutValidation("apiKey", Config.ApiKey);
             request.Content = form;
 
             var response = await _http.SendAsync(request);

@@ -92,7 +92,7 @@ namespace FoodApp
             try
             {
                 var result = await praxapp.QueryAsync("queryOptionTypeModel");
-                foreach (var item in result["All"])
+                foreach (var item in GetAllItems(result))
                     state.OptionTypeModels.Add(item);
 
                 Console.WriteLine(string.Format("[OK] {0} menü tipi:", state.OptionTypeModels.Count));
@@ -117,7 +117,7 @@ namespace FoodApp
             try
             {
                 var result = await praxapp.QueryAsync("queryTimeInterval");
-                foreach (var item in result["All"])
+                foreach (var item in GetAllItems(result))
                     state.TimeIntervals.Add(item);
 
                 Console.WriteLine(string.Format("[OK] {0} zaman dilimi:", state.TimeIntervals.Count));
@@ -165,7 +165,7 @@ namespace FoodApp
                     query: "Date >= @date",
                     args: new object[] { mondayParam });
 
-                foreach (var item in result["All"])
+                foreach (var item in GetAllItems(result))
                     state.SeatOptions.Add(item);
 
                 Console.WriteLine(string.Format("[OK] {0} menü kartı alındı.", state.SeatOptions.Count));
@@ -208,7 +208,7 @@ namespace FoodApp
                     args: new object[] { mondayParam, sicilNo }); //
                 
 
-                foreach (var item in result["All"])
+                foreach (var item in GetAllItems(result))
                     state.Reservations.Add(item);
 
                 Console.WriteLine(string.Format("[OK] {0} rezervasyon alındı.", state.Reservations.Count));
@@ -499,7 +499,7 @@ namespace FoodApp
                     //args: new object[] { mondayParam, state.UserId });
 
                     state.Reservations.Clear();
-                    foreach (var r in refreshResult["All"])
+                    foreach (var r in GetAllItems(refreshResult))
                         state.Reservations.Add(r);
                 }
                 catch (Exception ex)
@@ -507,6 +507,13 @@ namespace FoodApp
                     Console.WriteLine(string.Format("[UYARI] Rezervasyonlar yenilenirken hata: {0}", ex.Message));
                 }
             }
+        }
+
+        static IEnumerable<JToken> GetAllItems(JToken result)
+        {
+            if (result is JObject obj && obj["All"] is JArray arr)
+                return arr;
+            return Enumerable.Empty<JToken>();
         }
 
         // Şifre girişinde karakterleri ekranda gizler (üretim kullanımı için).

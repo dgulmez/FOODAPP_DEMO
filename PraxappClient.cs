@@ -32,7 +32,6 @@ namespace FoodApp
             var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Add("Authorization", _authHeader);
             request.Headers.Add("X-Forwarded-For", _tokenProvider.ClientIp);
-            request.Headers.TryAddWithoutValidation("User-Agent", Config.UserAgent);
             request.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
 
             var response = await _http.SendAsync(request);
@@ -41,7 +40,15 @@ namespace FoodApp
             if (!response.IsSuccessStatusCode)
                 throw new Exception(string.Format("Praxapp {0} hatası ({1}): {2}", op, (int)response.StatusCode, responseBody));
 
-            return JToken.Parse(responseBody);
+            var parsed = JToken.Parse(responseBody);
+            if (parsed is JValue jval)
+                throw new Exception(string.Format("Praxapp {0}: {1}", op, jval.ToString()));
+            if (parsed is JObject parsedObj && parsedObj["HasErrors"]?.Value<bool>() == true)
+            {
+                string msg = parsedObj["Messages"]?[0]?["Content"]?.ToString() ?? "Gateway hatası.";
+                throw new Exception(string.Format("Praxapp {0}: {1}", op, msg));
+            }
+            return parsed;
         }
 
         public Task<JToken> QueryAsync(string op, string query = "", object[] args = null)
